@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag & Drop File Transfer</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .drag-over {
+            border: 4px dashed #000;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+    <div class="bg-white p-6 rounded shadow-md text-center">
+        <div id="dropzone" class="cursor-pointer px-6 py-12 border-2 border-dashed rounded-md hover:bg-gray-50">
+            Drag & Drop files here or click to select
+            <input type="file" id="fileInput" class="hidden" multiple>
+        </div>
+        <div id="status" class="mt-4"></div>
+    </div>
+
+    <script>
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const statusDiv = document.getElementById('status');
+
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', uploadFiles);
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('drag-over');
+        });
+
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            fileInput.files = files;
+            uploadFiles();
+        });
+
+        function uploadFiles() {
+            const files = fileInput.files;
+            if (files.length === 0) return;
+
+            const formData = new FormData();
+            Array.from(files).forEach((file) => formData.append('file', file));
+
+            fetch('/', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.text())
+            .then(data => statusDiv.textContent = data)
+            .catch(() => statusDiv.textContent = 'Upload failed!');
+        }
+    </script>
+</body>
+</html>
